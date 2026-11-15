@@ -1,0 +1,30 @@
+name: Anarchy OS ARM64 QEMU
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prerequis
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses-dev file wget cpio unzip rsync bc libssl-dev python3 git xz-utils qemu-system-arm
+      - name: Compilation systeme
+        run: ./scripts/build.sh
+      - name: Verification binaire ARM64
+        run: file output/target/usr/bin/anarchy
+      - name: Archive images et instructions
+        run: |
+          mkdir -p dist
+          cp output/images/Image output/images/rootfs.ext2 dist/
+          cp README.md dist/
+          tar -C dist -czf anarchy-os-v1-qemu-arm64.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anarchy-os-v1-qemu-arm64
+          path: anarchy-os-v1-qemu-arm64.tar.gz
+          retention-days: 7

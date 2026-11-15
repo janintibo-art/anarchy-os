@@ -1,0 +1,8 @@
+#!/bin/sh
+case "$1" in
+ start)
+   echo 'ANARCHY OS : console disponible avec la commande anarchy'
+   ;;
+ stop) ;;
+esac
+exit 0

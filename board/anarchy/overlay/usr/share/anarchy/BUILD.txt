@@ -1,0 +1,3 @@
+ANARCHY OS v1 - ARM64 experimental
+Target: QEMU virt aarch64
+NOT FLASHABLE ON SAMSUNG GALAXY S20 FE.

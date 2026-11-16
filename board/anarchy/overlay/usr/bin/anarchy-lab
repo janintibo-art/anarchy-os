@@ -1,0 +1,75 @@
+#!/bin/sh
+# Anarchy OS v2 / diagnostics natifs en lecture seule.
+set -u
+bar() { printf '\n=== %s ===\n' "$1"; }
+show() { if [ -r "$1" ]; then printf '%s: ' "$1"; head -c 400 "$1"; printf '\n'; fi; }
+info() { bar 'ANARCHY OS v2'; uname -a; show /proc/version; show /proc/cmdline; }
+cpu() {
+ bar CPU
+ grep -E '^(processor|model name|Hardware|Features|CPU architecture|BogoMIPS)' /proc/cpuinfo 2>/dev/null | head -n 30 || true
+ for d in /sys/devices/system/cpu/cpufreq/policy*; do
+  [ -d "$d" ] || continue
+  for f in scaling_governor scaling_cur_freq cpuinfo_min_freq cpuinfo_max_freq; do show "$d/$f"; done
+ done
+}
+mem() { bar MEMOIRE; head -n 20 /proc/meminfo; }
+thermal() {
+ bar THERMIQUE
+ count=0
+ for d in /sys/class/thermal/thermal_zone*; do
+  [ -d "$d" ] || continue
+  count=$((count+1)); show "$d/type"; show "$d/temp"
+ done
+ [ "$count" -gt 0 ] || echo 'Aucune zone thermique exposee'
+ echo 'Temperatures souvent exprimees en millidegres Celsius.'
+}
+storage() { bar STOCKAGE; cat /proc/partitions 2>/dev/null || true; df -h 2>/dev/null || df; }
+net() { bar RESEAU; cat /proc/net/dev 2>/dev/null || true; }
+power() {
+ bar ENERGIE
+ count=0
+ for d in /sys/class/power_supply/*; do
+  [ -d "$d" ] || continue
+  count=$((count+1))
+  for f in type status capacity voltage_now current_now temp; do show "$d/$f"; done
+ done
+ [ "$count" -gt 0 ] || echo 'Aucun capteur d alimentation expose'
+}
+devices() {
+ bar PERIPHERIQUES
+ for bus in i2c spi usb platform; do
+  d="/sys/bus/$bus/devices"
+  [ -d "$d" ] || continue
+  echo "$d:"; ls "$d" | head -n 20
+ done
+}
+report() { info; cpu; mem; thermal; storage; net; power; devices; }
+help() { cat <<'EOF'
+ANARCHY OS v2 - Hardware Lab
+ anarchy-lab info      Informations noyau
+ anarchy-lab cpu       CPU et gouverneurs
+ anarchy-lab mem       Memoire
+ anarchy-lab thermal   Temperatures
+ anarchy-lab storage   Stockage
+ anarchy-lab net       Interfaces reseau
+ anarchy-lab power     Energie et batterie
+ anarchy-lab devices   Bus materiels
+ anarchy-lab report    Rapport complet
+ anarchy-lab selftest  Verification des interfaces systeme
+Mode lecture seule : aucun reglage materiel modifie.
+EOF
+}
+selftest() {
+ bar AUTOTEST
+ failures=0
+ for f in /proc/cpuinfo /proc/meminfo /proc/mounts /sys; do
+  if [ -r "$f" ]; then echo "OK $f"; else echo "ABSENT $f"; failures=$((failures+1)); fi
+ done
+ [ "$failures" -eq 0 ]
+}
+case "${1:-help}" in
+ info) info;; cpu) cpu;; mem) mem;; thermal) thermal;;
+ storage) storage;; net) net;; power) power;; devices) devices;;
+ report) report;; selftest) selftest;; help|-h|--help) help;;
+ *) echo "Commande inconnue: $1"; help; exit 2;;
+esac

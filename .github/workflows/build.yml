@@ -17,14 +17,21 @@ jobs:
         run: ./scripts/build.sh
       - name: Verification binaire ARM64
         run: file output/target/usr/bin/anarchy
+      - name: Verifier modules Anarchy OS v2
+        run: |
+          test -s output/images/Image
+          test -s output/images/rootfs.ext2
+          test -x output/target/usr/bin/anarchy
+          test -x output/target/usr/bin/anarchy-lab
+          grep -q 'ANARCHY OS v2' output/target/usr/bin/anarchy-lab
       - name: Archive images et instructions
         run: |
           mkdir -p dist
           cp output/images/Image output/images/rootfs.ext2 dist/
           cp README.md dist/
-          tar -C dist -czf anarchy-os-v1-qemu-arm64.tar.gz .
+          tar -C dist -czf anarchy-os-v2-qemu-arm64.tar.gz .
       - uses: actions/upload-artifact@v4
         with:
-          name: anarchy-os-v1-qemu-arm64
-          path: anarchy-os-v1-qemu-arm64.tar.gz
+          name: anarchy-os-v2-qemu-arm64
+          path: anarchy-os-v2-qemu-arm64.tar.gz
           retention-days: 7

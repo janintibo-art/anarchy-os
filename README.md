@@ -48,3 +48,11 @@ Le SM-G780F est basé sur Exynos 990 ; la configuration QEMU **ne doit jamais ê
 
 ## Remarques
 Buildroot sert d'outillage de compilation et de construction de rootfs. L'interface et les programmes Anarchy OS ne sont pas une ROM modifiée. Les sources Linux, Buildroot et leurs licences doivent être respectées lors de la distribution.
+
+## v2 : Hardware Lab (16 novembre 2026)
+Dans la console QEMU en root : `anarchy-lab help`, puis `anarchy-lab report`.
+Le module en shell POSIX interroge directement `/proc` et `/sys` : CPU, RAM,
+thermique, alimentation, reseau, stockage et bus peripheriques. Il reste en lecture seule.
+`anarchy-lab selftest` verifie la presence des interfaces Linux.
+GitHub Actions verifie la presence des deux executables et les images avant publication.
+**Le fichier rootfs.ext2 et le noyau QEMU ne doivent pas etre flashes sur un Samsung.**
